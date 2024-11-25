@@ -1,69 +1,35 @@
-import React from 'react'
-import { useState } from 'react';
-function ImagePreview() {
+import React from 'react';
 
-    const [previewimg, setPreviewimg] = useState(null);
+function ImagePreview({ file }) {
+  if (!file) return null; // Don't render if there's no file
 
-    const handleImagePreview = (event) => {
+  // Generate a preview URL from the file
+  const previewImg = URL.createObjectURL(file);
 
-        const file = event.target.files[0];
-
-        if (file) {
-
-            const reader = new FileReader();
-
-            reader.onload = () => {
-
-                setPreviewimg(reader.result)
-            };
-            reader.readAsDataURL(file)
-        } else {
-            setPreviewimg(null)
-        }
-    };
-
-
-
-    return (
-        <div>
-
-            <input
-                type="file"
-                name="image"
-                accept="image/*"
-                required
-                // onClick={setIsPreviewShow(true)}
-                onChange={handleImagePreview}
-                className='text-white'
-            />
-
-                <div
-                    style={{
-                        width: "150px",
-                        height: "150px",
-                        border: "2px dashed #ddd",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        overflow: "hidden",
-                        backgroundColor: "#f9f9f9",
-                        margin: "auto",
-                    }}
-                >
-                    
-                    {
-                        previewimg ? (
-                            <img
-                                src={previewimg}
-                                alt='preview'
-                            />
-                        ) : null
-                    }
-
-                </div>
-            
-        </div>
-    )
+  return (
+    <div
+      style={{
+        width: '150px',
+        height: '150px',
+        border: '2px dashed #ddd',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        backgroundColor: '#f9f9f9',
+        margin: 'auto',
+      }}
+    >
+      <img
+        src={previewImg}
+        alt="Preview"
+        style={{
+          maxWidth: '100%',
+          maxHeight: '100%',
+        }}
+      />
+    </div>
+  );
 }
 
-export default ImagePreview
+export default ImagePreview;
