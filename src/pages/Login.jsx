@@ -1,63 +1,95 @@
-import React, { useState } from 'react'
-import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
-
-
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const [passtype,setPasstype] = useState(false);
-    // const [passIcon,setPassIcon] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const handleShowIcon = () => {
-        setPasstype(!passtype);
+    try {
+      const baseURL = process.env.REACT_APP_API_BASE_URL;
+      const response = await axios.post(`${baseURL}/api/login`, { email, password });
+
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      navigate('/dashboard');
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return (
-        <div>
-            <div className="bg-gray-50 font-[sans-serif] shadow-md">
-                <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
-                    <div className="max-w-md w-full">
-                        <div className="p-8 rounded-2xl border border-gray-300 bg-white shadow-lg">
-                            <h2 className="text-gray-800 text-center text-2xl font-bold">Login</h2>
-                            <form className="mt-8 space-y-4">
-                                <div>
-                                    <label className="text-gray-800 text-sm mb-2 block">Email</label>
-                                    <div className="relative flex items-center">
-                                        <input name="email" type="email" required className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-blue-600" placeholder="Enter email" />
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#bbb" stroke="#bbb" className="w-4 h-4 absolute right-4" viewBox="0 0 24 24">
-                                            <circle cx="10" cy="7" r="6" data-original="#000000"></circle>
-                                            <path d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5zm8-4h-2.59l.3-.29a1 1 0 0 0-1.42-1.42l-2 2a1 1 0 0 0 0 1.42l2 2a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42l-.3-.29H22a1 1 0 0 0 0-2z" data-original="#000000"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-gray-800 text-sm mb-2 block">Password</label>
-                                    <div className="relative flex items-center">
-                                        <input name="password" type={passtype? 'text':'password'} required className="w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-blue-600" placeholder="Enter password" />                                        
-                                        
-                                        {/* password show icon */}
-                                        <div className='absolute right-4 text-gray-500'>
-                                            {
-                                                passtype? <FaRegEye onClick={handleShowIcon}/> : <FaRegEyeSlash onClick={handleShowIcon}/>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-8">
-                                    <button type="button" className="w-full py-3 px-4 text-md font-semibold tracking-wide rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                                        Login
-                                    </button>
-                                </div>
-                                <p className="text-gray-800 text-sm !mt-8 text-center">Don't have an account? <a href='./Signup' className="text-blue-600 hover:underline ml-1 whitespace-nowrap font-semibold">Register here</a></p>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="flex flex-col justify-center font-[sans-serif] sm:h-screen p-4 bg-gray-50">
+      <div className="max-w-md w-full mx-auto bg-white border border-gray-300 rounded-2xl p-8 shadow-lg">
+        <div className="text-center mb-5">
+          <a href="#" className="font-semibold text-2xl">Login</a>
         </div>
-    )
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-6">
+            <div>
+              <label className="text-gray-800 text-sm mb-2 block">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
+                placeholder="Enter email"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-gray-800 text-sm mb-2 block">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+          </div>
+
+          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+
+          <div className="!mt-8">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </div>
+
+          <p className="text-gray-800 text-sm mt-6 text-center">
+            Don't have an account?{' '}
+            <a href="/signup" className="text-blue-600 font-semibold hover:underline ml-1">
+              Sign up here
+            </a>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
 }
 
-export default Login
-
+export default Login;

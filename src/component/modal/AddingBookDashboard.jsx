@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from 'react-modal';
 
-const AddingBookDashboard = ({ isOpen, onClose, onBookAdded }) => {
+const AddingBookDashboard = ({ isOpen, onClose, book, isEdit, onBookAdded, onBookUpdated }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [file, setFile] = useState(null); // File state
-  const [preview, setPreview] = useState(null); // Image preview state
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Handle file input change
+  useEffect(() => {
+    if (isEdit && book) {
+      setTitle(book.title);
+      setDescription(book.description);
+      setPreview(book.coverImage ? `${process.env.REACT_APP_API_BASE_URL}${book.coverImage}` : null);
+    } else {
+      setTitle('');
+      setDescription('');
+      setFile(null);
+      setPreview(null);
+    }
+  }, [isEdit, book]);
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFile(selectedFile); // Update file state
+    setFile(selectedFile);
     if (selectedFile) {
-      setPreview(URL.createObjectURL(selectedFile)); // Generate preview URL
+      setPreview(URL.createObjectURL(selectedFile));
     } else {
-      setPreview(null); // Clear preview if no file is selected
+      setPreview(null);
     }
   };
 
@@ -30,27 +42,33 @@ const AddingBookDashboard = ({ isOpen, onClose, onBookAdded }) => {
       formData.append('title', title);
       formData.append('description', description);
       if (file) {
-        formData.append('coverImage', file); // Append file if selected
+        formData.append('coverImage', file);
       }
 
       const baseURL = process.env.REACT_APP_API_BASE_URL;
-      const response = await axios.post(`${baseURL}/api/books`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
 
-      const savedBook = response.data.book;
-      if (onBookAdded) {
-        onBookAdded(savedBook); // Pass the saved book to Dashboard
+      if (isEdit) {
+        const response = await axios.put(`${baseURL}/api/books/${book._id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const updatedBook = response.data.book;
+        if (onBookUpdated) {
+          onBookUpdated(updatedBook);
+        }
+      } else {
+        const response = await axios.post(`${baseURL}/api/books`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const savedBook = response.data.book;
+        if (onBookAdded) {
+          onBookAdded(savedBook);
+        }
       }
 
-      setTitle('');
-      setDescription('');
-      setFile(null);
-      setPreview(null); // Clear the preview
-      onClose(); // Close the modal
+      onClose();
     } catch (err) {
-      console.error('Error saving book:', err);
-      setError('Failed to save book');
+      console.error('Error saving/updating book:', err);
+      setError(isEdit ? 'Failed to update book' : 'Failed to save book');
     } finally {
       setLoading(false);
     }
@@ -62,116 +80,75 @@ const AddingBookDashboard = ({ isOpen, onClose, onBookAdded }) => {
         isOpen={isOpen}
         onRequestClose={onClose}
         style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Backdrop
-          },
+          overlay: { backgroundColor: 'rgba(0, 0, 0, 0.5)' },
         }}
-        contentLabel="Add Book Modal"
         className="flex items-center justify-center h-screen"
       >
-        <div className="bg-white shadow-md rounded-lg py-2 px-4 w-full h-[550px] max-w-md relative">
-          <h1 className="text-xl font-semibold text-gray-800 mb-1">Add A Book</h1>
-          <p className="text-gray-600 mb-1">
-            Please provide a title, description, and the file you want to upload.
-          </p>
-          <form onSubmit={handleSubmit}>
-            {/* Title Field */}
-            <div className="mb-1">
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+        <div className="bg-white shadow-md rounded-lg py-6 px-6 w-full max-w-md relative">
+          <h1 className="text-xl font-semibold text-gray-800 mb-3">
+            {isEdit ? 'Edit Book' : 'Add A Book'}
+          </h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                 Title
               </label>
               <input
                 type="text"
                 id="title"
-                name="title"
-                placeholder="Enter the title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
                 required
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
-            {/* Description Field */}
-            <div className="mb-1">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                 Description
               </label>
               <textarea
                 id="description"
-                name="description"
-                rows="3"
-                placeholder="Enter a brief description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="block resize-none w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                rows="3"
                 required
-              ></textarea>
+                className="w-full p-2 border border-gray-300 rounded"
+              />
             </div>
 
-            {/* File Upload Field */}
-            <div className="mb-1">
-              <label
-                htmlFor="file"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Select File
+            <div>
+              <label htmlFor="file" className="block text-sm font-medium text-gray-700">
+                Cover Image
               </label>
               <input
                 type="file"
                 id="file"
-                name="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg p-2"
+                className="w-full p-2 border border-gray-300 rounded"
               />
-              {/* Always Visible Preview Box */}
-              <div
-                className="mt-4 flex justify-center items-center h-40 w-full rounded-lg shadow-md border border-gray-300"
-                style={{
-                  backgroundColor: preview ? 'transparent' : '#f9f9f9',
-                }}
-              >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="h-full w-auto object-contain"
-                  />
-                ) : (
-                  <span className="text-gray-500">No Image Selected</span>
-                )}
-              </div>
+              {preview && (
+                <div className="mt-4">
+                  <img src={preview} alt="Preview" className="h-40 w-full object-contain rounded" />
+                </div>
+              )}
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
             >
-              {loading ? 'Submitting...' : 'Submit'}
+              {loading ? 'Saving...' : isEdit ? 'Update Book' : 'Add Book'}
             </button>
           </form>
-
-          {/* Close Button */}
           <button
-            className="absolute top-3 right-3 text-gray-500 font-bold hover:text-gray-700 rounded-xl px-1 outline outline-1 outline-slate-800/50 opacity-60 hover:opacity-95"
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             onClick={onClose}
           >
             ✕
           </button>
-
-          {/* Error Message */}
-          {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
         </div>
       </Modal>
     </div>
