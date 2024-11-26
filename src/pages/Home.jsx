@@ -14,10 +14,11 @@ function Home() {
     setError(null);  // Reset any previous errors
   
     try {
-      let url = 'http://localhost:8000/api/books'; // Default endpoint to fetch all books
+      const baseURL = process.env.REACT_APP_API_BASE_URL;
+      let url = `${baseURL}/api/books`; // Default endpoint to fetch all books
   
       if (query) {
-        url = `http://localhost:8000/api/books/search?title=${query}`; // If there's a query, search by title
+        url = `${baseURL}/api/books/search?title=${query}`;
       }
   
       const response = await axios.get(url);
@@ -65,7 +66,7 @@ function Home() {
             <a href="#">
               <img
                 className="card-image rounded-t-2xl w-full h-56"
-                src={book.coverImage ? `http://localhost:8000${book.coverImage}` : 'http://localhost:8000/images/default.png'}
+                src={book.coverImage ? `${process.env.REACT_APP_API_BASE_URL}${book.coverImage}` : `${process.env.REACT_APP_API_BASE_URL}images/default.png`}
                 alt={book.title}
               />
             </a>

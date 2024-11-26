@@ -21,7 +21,8 @@ function Dashboard() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/books'); // Replace with your backend API URL
+        const baseURL = process.env.REACT_APP_API_BASE_URL;
+        const response = await axios.get(`${baseURL}/api/books`);
         setBooks(response.data.books);
         setLoading(false);
       } catch (err) {
@@ -49,8 +50,9 @@ function Dashboard() {
   // Function to remove a book from the state
   const handleDeleteBook = async (bookId) => {
     try {
+      const baseURL = process.env.REACT_APP_API_BASE_URL;
       // Send DELETE request to the backend
-      await axios.delete(`http://localhost:8000/api/books/${bookId}`);
+      await axios.delete(`${baseURL}/api/books/${bookId}`);
       // Remove the book from the state
       setBooks((prevBooks) => prevBooks.filter((book) => book._id !== bookId));
     } catch (err) {

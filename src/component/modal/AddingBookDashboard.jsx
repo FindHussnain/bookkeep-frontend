@@ -33,7 +33,8 @@ const AddingBookDashboard = ({ isOpen, onClose, onBookAdded }) => {
         formData.append('coverImage', file); // Append file if selected
       }
 
-      const response = await axios.post('http://localhost:8000/api/books', formData, {
+      const baseURL = process.env.REACT_APP_API_BASE_URL;
+      const response = await axios.post(`${baseURL}/api/books`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

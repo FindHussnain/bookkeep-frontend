@@ -20,7 +20,7 @@ function BookCard({ book, onDeleteBook }) { // Accept `onDeleteBook` prop
   return (
     <div className="card bg-white" key={book._id}>
       <img
-        src={book.coverImage ? `http://localhost:8000${book.coverImage}` : 'http://localhost:8000/images/default.png'}
+        src={book.coverImage ? `${process.env.REACT_APP_API_BASE_URL}${book.coverImage}` : '${process.env.REACT_APP_API_BASE_URL}/images/default.png'}
         alt="Book Cover"
         className="card-image"
       />
