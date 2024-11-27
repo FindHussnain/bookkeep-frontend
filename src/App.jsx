@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import BookShow from './pages/BookShow';
@@ -8,8 +8,11 @@ import Dashboard from './pages/Dashboard';
 import Navbar from './component/common/Navbar';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
   return (
     <BrowserRouter>
       <Navbar />
@@ -18,7 +21,7 @@ function App() {
           path="/login"
           element={
             <PublicRoute>
-              <Login />
+              <Login setIsLoggedIn={setIsLoggedIn} />  {/* Pass the setLogin function to Login */}
             </PublicRoute>
           }
         />
@@ -41,6 +44,18 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/book/:id" element={<BookShow />} />
       </Routes>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </BrowserRouter>
   );
 }

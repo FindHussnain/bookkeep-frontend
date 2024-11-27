@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import BookCard from '../component/BookCard';
 import AddingBookDashboard from '../component/modal/AddingBookDashboard';
 import axios from 'axios';
@@ -24,18 +26,16 @@ function Dashboard() {
     } catch (err) {
       console.error(err);
       setError(err.message);
+      toast.error('Error loading books!');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchBooks();
-  }, []);
-
   const handleAddBook = (newBook) => {
     setBooks((prevBooks) => [newBook, ...prevBooks]);
     handleClose();
+    toast.success('Book added successfully!');
   };
 
   const handleEditBook = (updatedBook) => {
@@ -45,6 +45,7 @@ function Dashboard() {
       )
     );
     handleClose();
+    toast.success('Book updated successfully!');
   };
 
   const handleDeleteBook = async (bookId) => {
@@ -52,10 +53,15 @@ function Dashboard() {
       const baseURL = process.env.REACT_APP_API_BASE_URL;
       await axios.delete(`${baseURL}/api/books/${bookId}`);
       setBooks((prevBooks) => prevBooks.filter((book) => book._id !== bookId));
+      toast.success('Book deleted successfully!');
     } catch (err) {
+      toast.error('Error deleting book!');
       console.error('Error deleting book:', err);
     }
   };
+  useEffect(() => {
+    fetchBooks();
+  }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -98,6 +104,18 @@ function Dashboard() {
           />
         ))}
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }
